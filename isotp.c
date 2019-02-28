@@ -46,11 +46,13 @@ static int isotp_send_flow_control(IsoTpLink* link, uint8_t flow_status, uint8_t
     /* send message */
 #ifdef ISO_TP_FRAME_PADDING
     (void)memset(message.as.flow_control.reserve, 0, sizeof(message.as.flow_control.reserve));
-    ret = isotp_user_send_can(link->send_arbitration_id,
+    ret = isotp_user_send_can(link->context,
+                           link->send_arbitration_id | 0x40000000, // high priority flag
                            message.as.data_array.ptr, 
                            sizeof(message));
 #else    
-    ret = isotp_user_send_can(link->send_arbitration_id,
+    ret = isotp_user_send_can(link->context,
+                           link->send_arbitration_id | 0x40000000, // high priority flag
                            message.as.data_array.ptr, 
                            3);
 #endif
@@ -77,11 +79,13 @@ static int isotp_send_single_frame(IsoTpLink* link, uint32_t id)
     (void)memset(message.as.single_frame.data + link->send_size,
            0,
            sizeof(message.as.single_frame.data) - link->send_size);
-    ret = isotp_user_send_can(id,
+    ret = isotp_user_send_can(link->context,
+                           id,
                            message.as.data_array.ptr, 
                            sizeof(message));
 #else
-    ret = isotp_user_send_can(id,
+    ret = isotp_user_send_can(link->context,
+                           id,
                            message.as.data_array.ptr, 
                            link->send_size + 1);
 #endif
@@ -107,7 +111,8 @@ static int isotp_send_first_frame(IsoTpLink* link, uint32_t id)
            sizeof(message.as.first_frame.data));
 
     /* send message */
-    ret = isotp_user_send_can(id,
+    ret = isotp_user_send_can(link->context,
+                           id,
                            message.as.data_array.ptr, 
                            sizeof(message));
     if (ISOTP_RET_OK == ret){
@@ -142,11 +147,13 @@ static int isotp_send_consecutive_frame(IsoTpLink* link)
     (void)memset(message.as.consecutive_frame.data + data_length,
            0,
            sizeof(message.as.consecutive_frame.data) - data_length);
-    ret = isotp_user_send_can(link->send_arbitration_id,
+    ret = isotp_user_send_can(link->context,
+                           link->send_arbitration_id,
                            message.as.data_array.ptr,
                            sizeof(message));
 #else
-    ret = isotp_user_send_can(link->send_arbitration_id,
+    ret = isotp_user_send_can(link->context,
+                           link->send_arbitration_id,
                            message.as.data_array.ptr,
                            data_length + 1);
 #endif
@@ -182,7 +189,12 @@ int isotp_send_with_id(IsoTpLink *link, uint32_t id, const uint8_t payload[], ui
     /* copy into local buffer */
     link->send_size = size;
     link->send_offset = 0;
+#if defined(__StratifyOS__)
+    // OS will keep this buffer in place until we say we're done with it
+    link->send_buffer = payload;
+#else
     (void)memcpy(link->send_buffer, payload, size);
+#endif
 
     if(link->send_size < 8){
         /* send single frame */
@@ -199,6 +211,7 @@ int isotp_send_with_id(IsoTpLink *link, uint32_t id, const uint8_t payload[], ui
             link->send_timer_st = isotp_user_get_ms();
             link->send_timer_bs = isotp_user_get_ms() + ISO_TP_DEFAULT_RESPONSE_TIMEOUT;
             link->send_protocol_resault = ISOTP_PROTOCOL_RESAULT_OK;
+            link->send_arbitration_id = id; // each time we go 'INPROGRESS' id must be known for FC
             link->send_status = ISOTP_SEND_STATUS_INPROGRESS;
         }
     }
@@ -468,19 +481,20 @@ int isotp_receive(IsoTpLink *link, uint8_t *payload, const uint16_t payload_size
     return ISOTP_RET_OK;
 }
 
-void isotp_init_link(IsoTpLink *link, uint32_t sendid, 
+void isotp_init_link(IsoTpLink *link, void *context, uint32_t sendid,
                      uint8_t *sendbuf, uint16_t sendbufsize,
                      uint8_t *recvbuf, uint16_t recvbufsize)
 {
     memset(link, 0, sizeof(*link));
     link->receive_status = ISOTP_RECEIVE_STATUS_IDLE;
     link->send_status = ISOTP_SEND_STATUS_IDLE;
+    link->context = context;
     link->send_arbitration_id = sendid;
     link->send_buffer = sendbuf;
     link->send_buf_size = sendbufsize;
     link->receive_buffer = recvbuf;
     link->recevie_buf_size = recvbufsize;
-    
+
     return;
 }
 

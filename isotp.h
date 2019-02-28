@@ -13,6 +13,8 @@ extern "C" {
 #include "isotp_user.h"
 
 typedef struct {
+    const void                  *context; /* i.e. the file handle to use */
+
     /* sender paramters */
     uint32_t                    send_arbitration_id; /* used to reply consecutive frame */
     /* message buffer */
@@ -33,7 +35,7 @@ typedef struct {
     uint8_t                     send_status;
 
     /* receiver paramters */
-    uint32_t                    receive_arbitration_id;
+    //uint32_t                    receive_arbitration_id;
     /* message buffer */
     uint8_t                     *receive_buffer;
     uint16_t                    recevie_buf_size;
@@ -50,7 +52,7 @@ typedef struct {
 } IsoTpLink;
 
 /* init isotplink called when startup */
-void isotp_init_link(IsoTpLink *link, uint32_t sendid, 
+void isotp_init_link(IsoTpLink *link, void *context, uint32_t sendid,
                      uint8_t *sendbuf, uint16_t sendbufsize,
                      uint8_t *recvbuf, uint16_t recvbufsize);
 
