@@ -242,7 +242,7 @@ static int isotp_receive_first_frame(IsoTpLink *link, IsoTpCanMessage *message, 
     uint16_t payload_length;
 
     if (8 != len){
-        IsoTpUserDebug("First frame should be 8 byte lenght.");
+        isotp_user_debug("First frame should be 8 byte lenght.");
         return ISOTP_RET_LENGTH;
     }
 

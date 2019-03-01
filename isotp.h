@@ -18,7 +18,7 @@ typedef struct {
     /* sender paramters */
     uint32_t                    send_arbitration_id; /* used to reply consecutive frame */
     /* message buffer */
-    uint8_t                     *send_buffer;
+    const uint8_t               *send_buffer;
     uint16_t                    send_buf_size;
     uint16_t                    send_size;
     uint16_t                    send_offset;
