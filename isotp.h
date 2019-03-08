@@ -57,7 +57,7 @@ void isotp_init_link(IsoTpLink *link, void *context, uint32_t sendid,
                      uint8_t *recvbuf, uint16_t recvbufsize);
 
 /* called periodicity, send consecutive frame, handle timeout, etc. */
-void isotp_poll(IsoTpLink *link);
+int isotp_poll(IsoTpLink *link);
 
 /* called when receive can message */
 void isotp_on_can_message(IsoTpLink *link, uint8_t *data, uint8_t len);

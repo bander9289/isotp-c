@@ -176,10 +176,12 @@ int isotp_send_with_id(IsoTpLink *link, uint32_t id, const uint8_t payload[], ui
 {
     int ret;
     
+#if !defined(__StratifyOS__)
     if (size > link->send_buf_size){
         isotp_user_debug("Message to big, increase ISO_TP_MAX_MESSAGE_SIZE to set a bigger buffer\n");
         return ISOTP_RET_OVERFLOW;
     }
+#endif
 
     if (ISOTP_SEND_STATUS_INPROGRESS == link->send_status){
         isotp_user_debug("Abord previous message, which is sending in pregress\n");
@@ -498,9 +500,9 @@ void isotp_init_link(IsoTpLink *link, void *context, uint32_t sendid,
     return;
 }
 
-void isotp_poll(IsoTpLink *link)
+int isotp_poll(IsoTpLink *link)
 {
-    int ret;
+    int ret = ISOTP_RET_NO_ACTION;
 
     /* only polling when operation in progress */
     if (ISOTP_SEND_STATUS_INPROGRESS == link->send_status){
@@ -523,7 +525,7 @@ void isotp_poll(IsoTpLink *link)
                 if (link->send_offset >= link->send_size){
                     link->send_status = ISOTP_SEND_STATUS_IDLE;
                 }
-            } else {
+            } else if (ISOTP_RET_NO_DATA != ret) { // use 'NO_DATA' on writes to mean no space left
                 link->send_status = ISOTP_SEND_STATUS_ERROR;
             }
         }
@@ -545,6 +547,6 @@ void isotp_poll(IsoTpLink *link)
         }
     }
 
-    return;
+    return ret;
 }
 
