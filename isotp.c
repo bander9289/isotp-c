@@ -1,5 +1,10 @@
 #include <stdint.h>
+#if defined(__StratifyOS__)
+#include <sos/sos.h>
+#include "mcu/debug.h"
+#else
 #include "debug.h"
+#endif
 #include "isotp.h"
 	
 /* st_min to microsecond */
