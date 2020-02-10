@@ -2,6 +2,18 @@
 #define __ISOTP_TYPES__
 
 /**************************************************************
+ * compiler specific defines
+ *************************************************************/
+#ifdef __GNUC__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define ISOTP_BYTE_ORDER_LITTLE_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#else
+#error "unsupported byte ordering"
+#endif
+#endif
+
+/**************************************************************
  * OS specific defines
  *************************************************************/
 #ifdef _WIN32
@@ -9,7 +21,7 @@
 #endif
 
 #ifdef _WIN32
-#define LITTLE_ENDIAN
+#define ISOTP_BYTE_ORDER_LITTLE_ENDIAN
 #define __builtin_bswap8  _byteswap_uint8
 #define __builtin_bswap16 _byteswap_uint16
 #define __builtin_bswap32 _byteswap_uint32
@@ -50,34 +62,34 @@ typedef enum {
 } IsoTpReceiveStatusTypes;
 
 /* can fram defination */
-#if defined(LITTLE_ENDIAN)
+#if defined(ISOTP_BYTE_ORDER_LITTLE_ENDIAN)
 typedef struct {
     uint8_t reserve_1:4;
     uint8_t type:4;
     uint8_t reserve_2[7];
 } IsoTpPciType;
 
-typedef struct {    
+typedef struct {
     uint8_t SF_DL:4;
     uint8_t type:4;
     uint8_t data[7];
 } IsoTpSingleFrame;
 
 typedef struct {
-    uint8_t FF_DL_high:4;    
+    uint8_t FF_DL_high:4;
     uint8_t type:4;
     uint8_t FF_DL_low;
     uint8_t data[6];
 } IsoTpFirstFrame;
 
 typedef struct {
-    uint8_t SN:4;    
+    uint8_t SN:4;
     uint8_t type:4;
     uint8_t data[7];
 } IsoTpConsecutiveFrame;
 
 typedef struct {
-    uint8_t FS:4;    
+    uint8_t FS:4;
     uint8_t type:4;
     uint8_t BS;
     uint8_t STmin;
@@ -92,7 +104,7 @@ typedef struct {
     uint8_t reserve_2[7];
 } IsoTpPciType;
 
-/* 
+/*
 * single frame
 * +-------------------------+-----+
 * | byte #0                 | ... |
@@ -108,7 +120,7 @@ typedef struct {
     uint8_t data[7];
 } IsoTpSingleFrame;
 
-/* 
+/*
 * first frame
 * +-------------------------+-----------------------+-----+
 * | byte #0                 | byte #1               | ... |
@@ -125,7 +137,7 @@ typedef struct {
     uint8_t data[6];
 } IsoTpFirstFrame;
 
-/* 
+/*
 * consecutive frame
 * +-------------------------+-----+
 * | byte #0                 | ... |
@@ -141,7 +153,7 @@ typedef struct {
     uint8_t data[7];
 } IsoTpConsecutiveFrame;
 
-/* 
+/*
 * flow control frame
 * +-------------------------+-----------------------+-----------------------+-----+
 * | byte #0                 | byte #1               | byte #2               | ... |
@@ -180,7 +192,7 @@ typedef struct {
  * protocol specific defines
  *************************************************************/
 
-/* Private: PCI types, for identifying each frame of an ISO-TP message.
+/* Private: Protocol Control Information (PCI) types, for identifying each frame of an ISO-TP message.
  */
 typedef enum {
     ISOTP_PCI_TYPE_SINGLE             = 0x0,
@@ -189,7 +201,7 @@ typedef enum {
     ISOTP_PCI_TYPE_FLOW_CONTROL_FRAME = 0x3
 } IsoTpProtocolControlInformation;
 
-/* Private: PCI flow control identifiers.
+/* Private: Protocol Control Information (PCI) flow control identifiers.
  */
 typedef enum {
     PCI_FLOW_STATUS_CONTINUE = 0x0,
@@ -199,16 +211,16 @@ typedef enum {
 
 /* Private: network layer resault code.
  */
-#define ISOTP_PROTOCOL_RESAULT_OK            0
-#define ISOTP_PROTOCOL_RESAULT_TIMEOUT_A    -1
-#define ISOTP_PROTOCOL_RESAULT_TIMEOUT_BS   -2
-#define ISOTP_PROTOCOL_RESAULT_TIMEOUT_CR   -3
-#define ISOTP_PROTOCOL_RESAULT_WRONG_SN     -4
-#define ISOTP_PROTOCOL_RESAULT_INVALID_FS   -5
-#define ISOTP_PROTOCOL_RESAULT_UNEXP_PDU    -6
-#define ISOTP_PROTOCOL_RESAULT_WFT_OVRN     -7
-#define ISOTP_PROTOCOL_RESAULT_BUFFER_OVFLW -8
-#define ISOTP_PROTOCOL_RESAULT_ERROR        -9
+#define ISOTP_PROTOCOL_RESULT_OK            0
+#define ISOTP_PROTOCOL_RESULT_TIMEOUT_A    -1
+#define ISOTP_PROTOCOL_RESULT_TIMEOUT_BS   -2
+#define ISOTP_PROTOCOL_RESULT_TIMEOUT_CR   -3
+#define ISOTP_PROTOCOL_RESULT_WRONG_SN     -4
+#define ISOTP_PROTOCOL_RESULT_INVALID_FS   -5
+#define ISOTP_PROTOCOL_RESULT_UNEXP_PDU    -6
+#define ISOTP_PROTOCOL_RESULT_WFT_OVRN     -7
+#define ISOTP_PROTOCOL_RESULT_BUFFER_OVFLW -8
+#define ISOTP_PROTOCOL_RESULT_ERROR        -9
 
 #endif
 
